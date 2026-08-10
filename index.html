@@ -63,8 +63,8 @@
 
     <script>
         // REPLACE WITH YOUR SUPABASE CREDENTIALS
-        const SUPABASE_URL = "https://mambdnwpwnghrbhnmzzc.supabase.co";
-        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        const SUPABASE_URL = "https://mambdnwpwnghrbhnmzzc.supabase.co/rest/v1/";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hbWJkbndwd25naHJiaG5tenpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNzcwMzUsImV4cCI6MjEwMTk1MzAzNX0.I9caQZBKG65WmOtTcn5jzegppO6zj4JOJVaA-ncsE-Q";
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = localStorage.getItem("tag_username") || "Guest";
