@@ -6,29 +6,59 @@
     <title>TAG Auctions</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #1a1a2e; color: #ffffff; }
-        .container { max-width: 600px; margin: 0 auto; background: #16213e; padding: 20px; border-radius: 8px; }
-        h1 { color: #e94560; }
-        .auction-item { border: 1px solid #0f3460; padding: 15px; border-radius: 5px; margin-top: 15px; }
-        .bid-btn { background-color: #e94560; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+        .container { max-width: 800px; margin: 0 auto; background: #16213e; padding: 20px; border-radius: 8px; }
+        h1 { color: #e94560; text-align: center; }
+        .auction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }
+        .auction-item { border: 1px solid #0f3460; padding: 15px; border-radius: 8px; background-color: #0f3460; text-align: center; }
+        .bid-btn { background-color: #e94560; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
         .bid-btn:hover { background-color: #d1334d; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>TAG Auctions</h1>
-        <div class="auction-item">
-            <h2>iPhone 15</h2>
-            <p>Current Price: ₹<span id="price">10</span></p>
-            <button class="bid-btn" onclick="placeBid()">Bid +₹1</button>
+        <div class="auction-grid" id="auction-grid">
+            <!-- Items will be injected here by JavaScript -->
         </div>
     </div>
 
     <script>
-        let currentPrice = 10;
-        function placeBid() {
-            currentPrice += 1;
-            document.getElementById("price").innerText = currentPrice;
+        // Step 1: Define an array of auction items
+        const items = [
+            { id: 1, name: "iPhone 15", price: 10 },
+            { id: 2, name: "MacBook Air M2", price: 50 },
+            { id: 3, name: "Sony WH-1000XM5", price: 15 },
+            { id: 4, name: "Apple Watch Series 9", price: 20 }
+        ];
+
+        // Function to render items on the page
+        function renderItems() {
+            const grid = document.getElementById("auction-grid");
+            grid.innerHTML = ""; // Clear existing grid
+
+            items.forEach(item => {
+                const itemCard = document.createElement("div");
+                itemCard.className = "auction-item";
+                itemCard.innerHTML = `
+                    <h2>${item.name}</h2>
+                    <p>Current Price: ₹<span id="price-${item.id}">${item.price}</span></p>
+                    <button class="bid-btn" onclick="placeBid(${item.id})">Bid +₹1</button>
+                `;
+                grid.appendChild(itemCard);
+            });
         }
+
+        // Bidding logic targeting specific item IDs
+        function placeBid(id) {
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.price += 1;
+                document.getElementById(`price-${id}`).innerText = item.price;
+            }
+        }
+
+        // Render products on page load
+        renderItems();
     </script>
 </body>
 </html>
