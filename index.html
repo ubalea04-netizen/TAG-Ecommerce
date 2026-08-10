@@ -10,8 +10,10 @@
         h1 { color: #e94560; text-align: center; }
         .auction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }
         .auction-item { border: 1px solid #0f3460; padding: 15px; border-radius: 8px; background-color: #0f3460; text-align: center; }
-        .bid-btn { background-color: #e94560; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        .bid-btn:hover { background-color: #d1334d; }
+        .timer { font-weight: bold; color: #e94560; margin: 10px 0; }
+        .bid-btn { background-color: #e94560; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+        .bid-btn:disabled { background-color: #555555; cursor: not-allowed; }
+        .bid-btn:hover:not(:disabled) { background-color: #d1334d; }
     </style>
 </head>
 <body>
@@ -23,18 +25,16 @@
     </div>
 
     <script>
-        // Step 1: Define an array of auction items
         const items = [
-            { id: 1, name: "iPhone 15", price: 10 },
-            { id: 2, name: "MacBook Air M2", price: 50 },
-            { id: 3, name: "Sony WH-1000XM5", price: 15 },
-            { id: 4, name: "Apple Watch Series 9", price: 20 }
+            { id: 1, name: "iPhone 15", price: 10, timeLeft: 30 },
+            { id: 2, name: "MacBook Air M2", price: 50, timeLeft: 60 },
+            { id: 3, name: "Sony WH-1000XM5", price: 15, timeLeft: 90 },
+            { id: 4, name: "Apple Watch Series 9", price: 20, timeLeft: 120 }
         ];
 
-        // Function to render items on the page
         function renderItems() {
             const grid = document.getElementById("auction-grid");
-            grid.innerHTML = ""; // Clear existing grid
+            grid.innerHTML = "";
 
             items.forEach(item => {
                 const itemCard = document.createElement("div");
@@ -42,22 +42,48 @@
                 itemCard.innerHTML = `
                     <h2>${item.name}</h2>
                     <p>Current Price: ₹<span id="price-${item.id}">${item.price}</span></p>
-                    <button class="bid-btn" onclick="placeBid(${item.id})">Bid +₹1</button>
+                    <p class="timer">Time Left: <span id="timer-${item.id}">${formatTime(item.timeLeft)}</span></p>
+                    <button class="bid-btn" id="btn-${item.id}" onclick="placeBid(${item.id})">Bid +₹1</button>
                 `;
                 grid.appendChild(itemCard);
             });
         }
 
-        // Bidding logic targeting specific item IDs
+        function formatTime(seconds) {
+            if (seconds <= 0) return "EXPIRED";
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
         function placeBid(id) {
             const item = items.find(i => i.id === id);
-            if (item) {
+            if (item && item.timeLeft > 0) {
                 item.price += 1;
                 document.getElementById(`price-${id}`).innerText = item.price;
             }
         }
 
-        // Render products on page load
+        setInterval(() => {
+            items.forEach(item => {
+                if (item.timeLeft > 0) {
+                    item.timeLeft -= 1;
+                    const timerElement = document.getElementById(`timer-${item.id}`);
+                    if (timerElement) {
+                        timerElement.innerText = formatTime(item.timeLeft);
+                    }
+
+                    if (item.timeLeft === 0) {
+                        const btn = document.getElementById(`btn-${item.id}`);
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.innerText = "Auction Ended";
+                        }
+                    }
+                }
+            });
+        }, 1000);
+
         renderItems();
     </script>
 </body>
