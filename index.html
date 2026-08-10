@@ -4,68 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAG Auctions</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #1a1a2e; color: #ffffff; }
         .container { max-width: 900px; margin: 0 auto; background: #16213e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
         h1 { color: #e94560; text-align: center; margin-top: 0; letter-spacing: 1px; }
-        .user-section { background-color: #0f3460; padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .user-section input { padding: 8px 12px; border-radius: 6px; border: 1px solid #16213e; outline: none; background: #1a1a2e; color: #fff; }
-        .user-section button { background-color: #e94560; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .user-section button:hover { background-color: #d1334d; }
+        
+        .user-section, .form-section { background-color: #0f3460; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .user-section input, .form-section input { padding: 8px 12px; border-radius: 6px; border: 1px solid #16213e; outline: none; background: #1a1a2e; color: #fff; margin: 4px; }
+        .user-section button, .form-section button { background-color: #e94560; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 4px; }
+        .user-section button:hover, .form-section button:hover { background-color: #d1334d; }
+        
+        .form-section h3 { margin-top: 0; color: #00fff0; font-size: 1.1em; }
+        .form-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
         .auction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
-        .auction-item { border: 1px solid #1f4287; padding: 15px; border-radius: 10px; background-color: #0f3460; text-align: center; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
+        .auction-item { border: 1px solid #1f4287; padding: 15px; border-radius: 10px; background-color: #0f3460; text-align: center; position: relative; }
         .badge { position: absolute; top: 10px; right: 10px; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; text-transform: uppercase; }
         .badge.active { background-color: #27ae60; color: white; }
         .badge.ended { background-color: #7f8c8d; color: white; }
         .item-img { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; margin: 10px 0; background-color: #1a1a2e; }
-        .item-title { margin: 5px 0; font-size: 1.2em; color: #fff; }
-        .price-tag { font-size: 1.1em; color: #00fff0; font-weight: bold; margin: 5px 0; }
+        .price-tag { font-size: 1.1em; color: #00fff0; font-weight: bold; }
         .timer { font-weight: bold; color: #e94560; margin: 8px 0; background: rgba(233, 69, 96, 0.1); padding: 5px; border-radius: 4px; }
-        .bid-btn { background-color: #e94560; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; margin-top: 5px; }
+        .bid-btn { background-color: #e94560; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
         .bid-btn:disabled { background-color: #4a4e69; cursor: not-allowed; }
-        .bid-btn:hover:not(:disabled) { background-color: #d1334d; }
+        
         .bid-log { margin-top: 12px; text-align: left; background: #16213e; padding: 10px; border-radius: 6px; max-height: 90px; overflow-y: auto; font-size: 0.8em; }
         .bid-log h4 { margin: 0 0 5px 0; color: #888; text-transform: uppercase; font-size: 0.75em; }
         .bid-log ul { list-style-type: none; padding-left: 0; margin: 0; }
         .bid-log li { margin-bottom: 3px; color: #bbb; border-bottom: 1px solid #222d4a; padding-bottom: 2px; }
-        .reset-btn { display: block; margin: 25px auto 0; background-color: transparent; color: #e94560; border: 1px solid #e94560; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .reset-btn:hover { background-color: #e94560; color: white; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>TAG AUCTIONS</h1>
+        <h1>TAG AUCTIONS (REAL-TIME)</h1>
 
-        <!-- User Identity Section -->
+        <!-- User Setup -->
         <div class="user-section">
-            <span id="user-display">Bidding as: <strong id="username-text">Guest</strong></span>
-            <div id="username-form">
-                <input type="text" id="username-input" placeholder="Enter username">
-                <button onclick="saveUsername()">Set Name</button>
+            <span>Bidding as: <strong id="username-text">Guest</strong></span>
+            <input type="text" id="username-input" placeholder="Enter username">
+            <button onclick="saveUsername()">Set Name</button>
+        </div>
+
+        <!-- Step 7: Create New Auction Form -->
+        <div class="form-section">
+            <h3>List a New Item for Auction</h3>
+            <div class="form-row">
+                <input type="text" id="new-name" placeholder="Item Name" required>
+                <input type="number" id="new-price" placeholder="Starting Price (₹)" required min="1">
+                <input type="number" id="new-duration" placeholder="Duration (seconds)" required min="10">
+                <input type="url" id="new-image" placeholder="Image URL (optional)">
+                <button onclick="createAuction()">Create Auction</button>
             </div>
         </div>
 
-        <div class="auction-grid" id="auction-grid">
-            <!-- Items will be injected here by JavaScript -->
-        </div>
-
-        <button class="reset-btn" onclick="resetBids()">Reset All Bids & Data</button>
+        <div class="auction-grid" id="auction-grid">Loading auctions...</div>
     </div>
 
     <script>
-        const initialItems = [
-            { id: 1, name: "iPhone 15", price: 10, timeLeft: 300, image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400", logs: [] },
-            { id: 2, name: "MacBook Air M2", price: 50, timeLeft: 600, image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400", logs: [] },
-            { id: 3, name: "Sony WH-1000XM5", price: 15, timeLeft: 900, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", logs: [] },
-            { id: 4, name: "Apple Watch Series 9", price: 20, timeLeft: 1200, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", logs: [] }
-        ];
+        // REPLACE WITH YOUR SUPABASE CREDENTIALS
+        const SUPABASE_URL = "https://mambdnwpwnghrbhnmzzc.supabase.co/rest/v1/";
+	const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hbWJkbndwd25naHJiaG5tenpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNzcwMzUsImV4cCI6MjEwMTk1MzAzNX0.I9caQZBKG65WmOtTcn5jzegppO6zj4JOJVaA-ncsE-Q";
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = localStorage.getItem("tag_username") || "Guest";
-        let items = JSON.parse(localStorage.getItem("tag_auction_items")) || initialItems;
+        let items = [];
 
-        function initUser() {
-            document.getElementById("username-text").innerText = currentUser;
-        }
+        document.getElementById("username-text").innerText = currentUser;
 
         function saveUsername() {
             const input = document.getElementById("username-input");
@@ -77,8 +82,54 @@
             }
         }
 
-        function saveToStorage() {
-            localStorage.setItem("tag_auction_items", JSON.stringify(items));
+        async function fetchItems() {
+            const { data, error } = await db.from('auctions').select('*').order('id', { ascending: true });
+            if (data) {
+                items = data;
+                renderItems();
+            }
+        }
+
+        // Step 7: Logic to insert new item into Supabase
+        async function createAuction() {
+            const nameInput = document.getElementById("new-name");
+            const priceInput = document.getElementById("new-price");
+            const durationInput = document.getElementById("new-duration");
+            const imageInput = document.getElementById("new-image");
+
+            const name = nameInput.value.trim();
+            const price = parseFloat(priceInput.value);
+            const duration = parseInt(durationInput.value);
+            const image = imageInput.value.trim() || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400";
+
+            if (!name || isNaN(price) || isNaN(duration)) {
+                alert("Please fill in Name, Starting Price, and Duration.");
+                return;
+            }
+
+            const newId = Date.now(); // Generate unique numeric ID using timestamp
+
+            const { error } = await db.from('auctions').insert([
+                {
+                    id: newId,
+                    name: name,
+                    price: price,
+                    time_left: duration,
+                    image: image,
+                    logs: []
+                }
+            ]);
+
+            if (error) {
+                console.error("Error creating auction:", error);
+                alert("Failed to create auction.");
+            } else {
+                // Clear form inputs
+                nameInput.value = "";
+                priceInput.value = "";
+                durationInput.value = "";
+                imageInput.value = "";
+            }
         }
 
         function renderItems() {
@@ -88,22 +139,21 @@
             items.forEach(item => {
                 const itemCard = document.createElement("div");
                 itemCard.className = "auction-item";
-                
-                const isEnded = item.timeLeft <= 0;
-                const logList = item.logs.map(log => `<li><strong>${log.user}</strong>: ₹${log.amount} <span style="color:#666">(${log.time})</span></li>`).join("");
+                const isEnded = item.time_left <= 0;
+                const logList = (item.logs || []).map(log => `<li><strong>${log.user}</strong>: ₹${log.amount} <span style="color:#666">(${log.time})</span></li>`).join("");
 
                 itemCard.innerHTML = `
                     <span class="badge ${isEnded ? 'ended' : 'active'}">${isEnded ? 'Ended' : 'Live'}</span>
                     <img src="${item.image}" alt="${item.name}" class="item-img">
-                    <h3 class="item-title">${item.name}</h3>
+                    <h3>${item.name}</h3>
                     <p class="price-tag">Current Bid: ₹<span id="price-${item.id}">${item.price}</span></p>
-                    <p class="timer">Time Left: <span id="timer-${item.id}">${formatTime(item.timeLeft)}</span></p>
-                    <button class="bid-btn" id="btn-${item.id}" onclick="placeBid(${item.id})" ${isEnded ? "disabled" : ""}>
+                    <p class="timer">Time Left: <span id="timer-${item.id}">${formatTime(item.time_left)}</span></p>
+                    <button class="bid-btn" onclick="placeBid(${item.id})" ${isEnded ? "disabled" : ""}>
                         ${isEnded ? "Auction Ended" : "Place Bid (+₹1)"}
                     </button>
                     <div class="bid-log">
                         <h4>Recent Activity</h4>
-                        <ul id="log-${item.id}">${logList || "<li>No bids placed yet</li>"}</ul>
+                        <ul>${logList || "<li>No bids placed yet</li>"}</ul>
                     </div>
                 `;
                 grid.appendChild(itemCard);
@@ -117,45 +167,25 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        function placeBid(id) {
+        async function placeBid(id) {
             const item = items.find(i => i.id === id);
-            if (item && item.timeLeft > 0) {
-                item.price += 1;
+            if (item && item.time_left > 0) {
+                const newPrice = item.price + 1;
                 const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                
-                item.logs.unshift({ user: currentUser, amount: item.price, time: timeString });
-                if (item.logs.length > 5) item.logs.pop();
+                const newLogs = [{ user: currentUser, amount: newPrice, time: timeString }, ...(item.logs || [])].slice(0, 5);
 
-                saveToStorage();
-                renderItems();
+                await db.from('auctions').update({ price: newPrice, logs: newLogs }).eq('id', id);
             }
         }
 
-        function resetBids() {
-            localStorage.removeItem("tag_auction_items");
-            items = JSON.parse(JSON.stringify(initialItems));
-            renderItems();
-        }
+        // Subscribe to real-time changes for updates AND newly inserted items
+        db.channel('auctions-channel')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'auctions' }, payload => {
+                fetchItems();
+            })
+            .subscribe();
 
-        setInterval(() => {
-            items.forEach(item => {
-                if (item.timeLeft > 0) {
-                    item.timeLeft -= 1;
-                    const timerElement = document.getElementById(`timer-${item.id}`);
-                    if (timerElement) {
-                        timerElement.innerText = formatTime(item.timeLeft);
-                    }
-
-                    if (item.timeLeft === 0) {
-                        renderItems(); // Re-render to show "Ended" badge and update button state
-                    }
-                }
-            });
-            saveToStorage();
-        }, 1000);
-
-        initUser();
-        renderItems();
+        fetchItems();
     </script>
 </body>
 </html>
