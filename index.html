@@ -10,6 +10,7 @@
         h1 { color: #e94560; }
         .auction-item { border: 1px solid #0f3460; padding: 15px; border-radius: 5px; margin-top: 15px; }
         .bid-btn { background-color: #e94560; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+        .bid-btn:hover { background-color: #d1334d; }
     </style>
 </head>
 <body>
@@ -17,9 +18,17 @@
         <h1>TAG Auctions</h1>
         <div class="auction-item">
             <h2>iPhone 15</h2>
-            <p>Start Price: ₹10</p>
-            <button class="bid-btn">Bid ₹1</button>
+            <p>Current Price: ₹<span id="price">10</span></p>
+            <button class="bid-btn" onclick="placeBid()">Bid +₹1</button>
         </div>
     </div>
+
+    <script>
+        let currentPrice = 10;
+        function placeBid() {
+            currentPrice += 1;
+            document.getElementById("price").innerText = currentPrice;
+        }
+    </script>
 </body>
 </html>
