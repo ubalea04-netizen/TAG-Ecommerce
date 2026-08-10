@@ -39,14 +39,14 @@
     <div class="container">
         <h1>TAG AUCTIONS (REAL-TIME)</h1>
 
-        <!-- User Setup -->
+        <!-- User Identity Section -->
         <div class="user-section">
             <span>Bidding as: <strong id="username-text">Guest</strong></span>
             <input type="text" id="username-input" placeholder="Enter username">
             <button onclick="saveUsername()">Set Name</button>
         </div>
 
-        <!-- Step 7: Create New Auction Form -->
+        <!-- Create New Auction Form -->
         <div class="form-section">
             <h3>List a New Item for Auction</h3>
             <div class="form-row">
@@ -63,8 +63,8 @@
 
     <script>
         // REPLACE WITH YOUR SUPABASE CREDENTIALS
-        const SUPABASE_URL = "https://mambdnwpwnghrbhnmzzc.supabase.co/rest/v1/";
-	const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hbWJkbndwd25naHJiaG5tenpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNzcwMzUsImV4cCI6MjEwMTk1MzAzNX0.I9caQZBKG65WmOtTcn5jzegppO6zj4JOJVaA-ncsE-Q";
+        const SUPABASE_URL = "https://mambdnwpwnghrbhnmzzc.supabase.co";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = localStorage.getItem("tag_username") || "Guest";
@@ -90,7 +90,7 @@
             }
         }
 
-        // Step 7: Logic to insert new item into Supabase
+        // Create item logic
         async function createAuction() {
             const nameInput = document.getElementById("new-name");
             const priceInput = document.getElementById("new-price");
@@ -107,7 +107,7 @@
                 return;
             }
 
-            const newId = Date.now(); // Generate unique numeric ID using timestamp
+            const newId = Date.now();
 
             const { error } = await db.from('auctions').insert([
                 {
@@ -124,7 +124,6 @@
                 console.error("Error creating auction:", error);
                 alert("Failed to create auction.");
             } else {
-                // Clear form inputs
                 nameInput.value = "";
                 priceInput.value = "";
                 durationInput.value = "";
@@ -178,7 +177,7 @@
             }
         }
 
-        // Subscribe to real-time changes for updates AND newly inserted items
+        // Subscribe to real-time updates and new inserts
         db.channel('auctions-channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'auctions' }, payload => {
                 fetchItems();
