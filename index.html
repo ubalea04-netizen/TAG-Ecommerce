@@ -8,34 +8,65 @@
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #1a1a2e; color: #ffffff; }
         .container { max-width: 800px; margin: 0 auto; background: #16213e; padding: 20px; border-radius: 8px; }
         h1 { color: #e94560; text-align: center; }
-        .auction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }
+        .user-section { background-color: #0f3460; padding: 15px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
+        .user-section input { padding: 8px; border-radius: 4px; border: 1px solid #16213e; outline: none; margin-right: 8px; }
+        .user-section button { background-color: #e94560; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+        .auction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; }
         .auction-item { border: 1px solid #0f3460; padding: 15px; border-radius: 8px; background-color: #0f3460; text-align: center; }
         .timer { font-weight: bold; color: #e94560; margin: 10px 0; }
         .bid-btn { background-color: #e94560; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
         .bid-btn:disabled { background-color: #555555; cursor: not-allowed; }
-        .bid-btn:hover:not(:disabled) { background-color: #d1334d; }
+        .bid-log { margin-top: 15px; text-align: left; background: #16213e; padding: 10px; border-radius: 4px; max-height: 100px; overflow-y: auto; font-size: 0.85em; }
+        .bid-log h4 { margin: 0 0 5px 0; color: #aaa; }
+        .bid-log ul { list-style-type: none; padding-left: 0; margin: 0; }
+        .bid-log li { margin-bottom: 4px; color: #ddd; }
         .reset-btn { display: block; margin: 20px auto 0; background-color: #0f3460; color: #aaa; border: 1px solid #e94560; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>TAG Auctions</h1>
+
+        <!-- User Identity Section -->
+        <div class="user-section">
+            <span id="user-display">Bidding as: <strong id="username-text">Guest</strong></span>
+            <div id="username-form" style="display: inline-block; margin-left: 10px;">
+                <input type="text" id="username-input" placeholder="Enter username">
+                <button onclick="saveUsername()">Set Name</button>
+            </div>
+        </div>
+
         <div class="auction-grid" id="auction-grid">
             <!-- Items will be injected here by JavaScript -->
         </div>
-        <button class="reset-btn" onclick="resetBids()">Reset All Bids</button>
+
+        <button class="reset-btn" onclick="resetBids()">Reset All Bids & Logs</button>
     </div>
 
     <script>
         const initialItems = [
-            { id: 1, name: "iPhone 15", price: 10, timeLeft: 300 },
-            { id: 2, name: "MacBook Air M2", price: 50, timeLeft: 600 },
-            { id: 3, name: "Sony WH-1000XM5", price: 15, timeLeft: 900 },
-            { id: 4, name: "Apple Watch Series 9", price: 20, timeLeft: 1200 }
+            { id: 1, name: "iPhone 15", price: 10, timeLeft: 300, logs: [] },
+            { id: 2, name: "MacBook Air M2", price: 50, timeLeft: 600, logs: [] },
+            { id: 3, name: "Sony WH-1000XM5", price: 15, timeLeft: 900, logs: [] },
+            { id: 4, name: "Apple Watch Series 9", price: 20, timeLeft: 1200, logs: [] }
         ];
 
-        // Load items from localStorage if available, otherwise use initial defaults
+        let currentUser = localStorage.getItem("tag_username") || "Guest";
         let items = JSON.parse(localStorage.getItem("tag_auction_items")) || initialItems;
+
+        function initUser() {
+            document.getElementById("username-text").innerText = currentUser;
+        }
+
+        function saveUsername() {
+            const input = document.getElementById("username-input");
+            if (input.value.trim() !== "") {
+                currentUser = input.value.trim();
+                localStorage.setItem("tag_username", currentUser);
+                document.getElementById("username-text").innerText = currentUser;
+                input.value = "";
+            }
+        }
 
         function saveToStorage() {
             localStorage.setItem("tag_auction_items", JSON.stringify(items));
@@ -48,6 +79,9 @@
             items.forEach(item => {
                 const itemCard = document.createElement("div");
                 itemCard.className = "auction-item";
+                
+                const logList = item.logs.map(log => `<li>${log.user} bid ₹${log.amount} at ${log.time}</li>`).join("");
+
                 itemCard.innerHTML = `
                     <h2>${item.name}</h2>
                     <p>Current Price: ₹<span id="price-${item.id}">${item.price}</span></p>
@@ -55,6 +89,10 @@
                     <button class="bid-btn" id="btn-${item.id}" onclick="placeBid(${item.id})" ${item.timeLeft <= 0 ? "disabled" : ""}>
                         ${item.timeLeft <= 0 ? "Auction Ended" : "Bid +₹1"}
                     </button>
+                    <div class="bid-log">
+                        <h4>Recent Bids</h4>
+                        <ul id="log-${item.id}">${logList || "<li>No bids yet</li>"}</ul>
+                    </div>
                 `;
                 grid.appendChild(itemCard);
             });
@@ -71,8 +109,14 @@
             const item = items.find(i => i.id === id);
             if (item && item.timeLeft > 0) {
                 item.price += 1;
-                document.getElementById(`price-${id}`).innerText = item.price;
-                saveToStorage(); // Save current price state
+                const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                
+                // Add log entry
+                item.logs.unshift({ user: currentUser, amount: item.price, time: timeString });
+                if (item.logs.length > 5) item.logs.pop(); // Keep last 5 bids
+
+                saveToStorage();
+                renderItems();
             }
         }
 
@@ -100,9 +144,10 @@
                     }
                 }
             });
-            saveToStorage(); // Save current timer state
+            saveToStorage();
         }, 1000);
 
+        initUser();
         renderItems();
     </script>
 </body>
