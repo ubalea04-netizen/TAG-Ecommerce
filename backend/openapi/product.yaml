@@ -1,0 +1,108 @@
+openapi: 3.0.1
+info:
+  title: Product/Catalog Service API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3002
+paths:
+  /products:
+    post:
+      summary: Create product (seller)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+      responses:
+        '201':
+          description: Created
+    get:
+      summary: List products
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product list
+  /products/{id}:
+    get:
+      summary: Get product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /products/{id}/inventory/reserve:
+    post:
+      summary: Reserve inventory for order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Reserved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reserved:
+                    type: boolean
+                  reservedQty:
+                    type: integer
+
+components:
+  schemas:
+    ProductCreate:
+      type: object
+      required: [title, sku, price, inventory]
+      properties:
+        title:
+          type: string
+        sku:
+          type: string
+        price:
+          type: integer
+        inventory:
+          type: integer
+        auction:
+          type: boolean
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        sku:
+          type: string
+        price:
+          type: integer
+        inventory:
+          type: integer
+        auction:
+          type: boolean

@@ -1,0 +1,60 @@
+openapi: 3.0.1
+info:
+  title: Order Service API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3004
+paths:
+  /orders/checkout:
+    post:
+      summary: Checkout cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '200':
+          description: Order created
+
+  /orders/{id}:
+    get:
+      summary: Get order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order
+
+components:
+  schemas:
+    CheckoutRequest:
+      type: object
+      required: [cartItems, shippingAddressId]
+      properties:
+        cartItems:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+              quantity:
+                type: integer
+        shippingAddressId:
+          type: string
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        totalAmount:
+          type: integer
+        status:
+          type: string

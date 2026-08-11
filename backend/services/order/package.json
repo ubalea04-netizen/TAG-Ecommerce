@@ -9,6 +9,7 @@
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
-    "@prisma/client": "*"
+    "@prisma/client": "4.15.0",
+    "axios": "^1.4.0"
   }
 }

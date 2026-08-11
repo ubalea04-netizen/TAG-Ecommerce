@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-services:
+    name: Test services
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Run tests for each service
+        run: |
+          set -euo pipefail
+          echo "Looking for services in backend/services..."
+          found=0
+          for d in backend/services/*; do
+            if [ -f "$d/package.json" ]; then
+              found=1
+              echo "\n=== Testing $d ==="
+              pushd "$d" >/dev/null
+              npm ci
+              npm test
+              popd >/dev/null
+            fi
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "No services with package.json found under backend/services"
+            exit 1
+          fi

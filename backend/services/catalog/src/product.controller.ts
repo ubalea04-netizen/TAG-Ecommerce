@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ProductService } from './product.service';
 

@@ -1,0 +1,55 @@
+openapi: 3.0.1
+info:
+  title: Payment Service API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3005
+paths:
+  /payments/intents:
+    post:
+      summary: Create payment intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentIntentRequest'
+      responses:
+        '200':
+          description: Payment intent
+
+  /payments/{id}/capture:
+    post:
+      summary: Capture payment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+      responses:
+        '200':
+          description: Captured
+
+components:
+  schemas:
+    PaymentIntentRequest:
+      type: object
+      required: [amount, currency, paymentMethod]
+      properties:
+        amount:
+          type: integer
+        currency:
+          type: string
+        paymentMethod:
+          type: string
+
+    PaymentIntent:
+      type: object
+      properties:
+        paymentIntentId:
+          type: string
+        status:
+          type: string

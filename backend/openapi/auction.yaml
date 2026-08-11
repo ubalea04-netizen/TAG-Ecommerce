@@ -1,0 +1,95 @@
+openapi: 3.0.1
+info:
+  title: Auction Service API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3003
+paths:
+  /auctions:
+    post:
+      summary: Create auction (seller)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuctionCreate'
+      responses:
+        '201':
+          description: Created
+
+  /auctions/{id}:
+    get:
+      summary: Get auction
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Auction
+
+  /auctions/{id}/bids:
+    post:
+      summary: Place a bid
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceBid'
+      responses:
+        '200':
+          description: Bid placed
+
+components:
+  schemas:
+    AuctionCreate:
+      type: object
+      required: [productId, startPrice, startAt, endAt]
+      properties:
+        productId:
+          type: string
+        startPrice:
+          type: integer
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+
+    Auction:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        startPrice:
+          type: integer
+        currentHighestBid:
+          type: integer
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+
+    PlaceBid:
+      type: object
+      required: [bidderId, amount]
+      properties:
+        bidderId:
+          type: string
+        amount:
+          type: integer
