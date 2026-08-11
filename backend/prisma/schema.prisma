@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      UserRole @default(CUSTOMER)
+  kycStatus KycStatus @default(NOT_SUBMITTED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Wallet    Wallet?
+}
+
+model Seller {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  storeName   String
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Product {
+  id         String   @id @default(uuid())
+  seller     Seller   @relation(fields: [sellerId], references: [id])
+  sellerId   String
+  title      String
+  sku        String   @unique
+  price      Int
+  inventory  Int
+  auction    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Auction {
+  id                String   @id @default(uuid())
+  product           Product  @relation(fields: [productId], references: [id])
+  productId         String
+  startPrice        Int
+  currentHighestBid Int?
+  startAt           DateTime
+  endAt             DateTime
+  status            AuctionStatus @default(SCHEDULED)
+  createdAt         DateTime @default(now())
+}
+
+model Bid {
+  id        String   @id @default(uuid())
+  auction   Auction  @relation(fields: [auctionId], references: [id])
+  auctionId String
+  bidder    User     @relation(fields: [bidderId], references: [id])
+  bidderId  String
+  amount    Int
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id          String   @id @default(uuid())
+  buyer       User     @relation(fields: [buyerId], references: [id])
+  buyerId     String
+  totalAmount Int
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+}
+
+model Wallet {
+  id        String @id @default(uuid())
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String @unique
+  balance   Int    @default(0)
+}
+
+enum UserRole {
+  CUSTOMER
+  SELLER
+  ADMIN
+}
+
+enum KycStatus {
+  NOT_SUBMITTED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum AuctionStatus {
+  SCHEDULED
+  RUNNING
+  ENDED
+  SETTLED
+}
+
+enum OrderStatus {
+  PENDING
+  PAYMENT_CONFIRMED
+  FULFILLED
+  CANCELLED
+}

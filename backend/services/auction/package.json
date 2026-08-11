@@ -1,0 +1,15 @@
+{
+  "name": "auction-service",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "ioredis": "^5.0.0",
+    "@prisma/client": "*"
+  }
+}

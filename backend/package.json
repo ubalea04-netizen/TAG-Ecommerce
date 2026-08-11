@@ -1,0 +1,11 @@
+{
+  "name": "tag-ecommerce-backend",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "bootstrap": "npm install"
+  }
+}
